@@ -1,471 +1,489 @@
-<!DOCTYPE html>
-<html lang="ro">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JuriDoc — Documente Juridice</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<style>
-:root{--ink:#0f0e0c;--parchment:#faf6ef;--cream:#f3ede2;--gold:#b8860b;--gold-l:#d4a017;--rust:#8b3a2a;--forest:#2d4a3e;--stone:#6b6560;--border:#d9cfc0}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--parchment);color:var(--ink);min-height:100vh;font-size:15px}
-header{background:var(--ink);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:72px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--gold)}
-.logo{display:flex;align-items:center;gap:14px;cursor:pointer}
-.logo-icon{width:40px;height:40px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.logo-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff}
-.logo-text span{color:var(--gold-l)}
-.hdr-right{font-size:13px;color:rgba(255,255,255,.45);letter-spacing:1.5px;text-transform:uppercase}
-.hero{background:linear-gradient(135deg,#0f0e0c 0%,#1a2820 100%);padding:64px 40px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(184,134,11,.07) 39px,rgba(184,134,11,.07) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(184,134,11,.07) 39px,rgba(184,134,11,.07) 40px);pointer-events:none}
-.hero-badge{display:inline-block;padding:6px 18px;background:rgba(184,134,11,.2);border:1px solid var(--gold);border-radius:100px;color:var(--gold-l);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;position:relative}
-.hero h1{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,48px);font-weight:700;color:#fff;line-height:1.15;margin-bottom:16px;position:relative}
-.hero h1 em{color:var(--gold-l);font-style:normal}
-.hero p{color:rgba(255,255,255,.65);max-width:540px;margin:0 auto 36px;font-size:16px;line-height:1.7;position:relative}
-.steps{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;position:relative}
-.step{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:100px;color:rgba(255,255,255,.8);font-size:13px}
-.step-num{width:22px;height:22px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink);flex-shrink:0}
-main{max-width:1100px;margin:0 auto;padding:48px 24px 80px}
-.sec-label{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--stone);font-weight:600;margin-bottom:20px}
-.tpl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
-.tpl-card{background:#fff;border:2px solid var(--border);border-radius:16px;padding:28px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.tpl-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border);transition:background .2s}
-.tpl-card:hover{border-color:#e8d5a3;transform:translateY(-2px);box-shadow:0 8px 24px rgba(15,14,12,.1)}
-.tpl-card:hover::before,.tpl-card.active::before{background:var(--gold-l)}
-.tpl-card.active{border-color:var(--gold);background:#fffdf5;box-shadow:0 4px 20px rgba(184,134,11,.15)}
-.card-icon{font-size:32px;margin-bottom:14px;display:block}
-.card-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.3}
-.card-basis{font-size:12px;color:var(--stone);font-style:italic;margin-bottom:12px}
-.card-cnt{font-size:12px;color:var(--forest);font-weight:600}
-#form-area{display:none;animation:fadeUp .3s ease}
-#form-area.visible{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.form-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap}
-.form-title-block h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:6px}
-.form-title-block p{color:var(--stone);font-size:14px;font-style:italic}
-.form-acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s;text-decoration:none;white-space:nowrap}
-.btn-gold{background:var(--gold);color:var(--ink)}.btn-gold:hover{background:var(--gold-l);box-shadow:0 4px 16px rgba(184,134,11,.3)}
-.btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--border)}.btn-outline:hover{border-color:var(--stone);background:var(--cream)}
-.btn-lg{padding:15px 32px;font-size:16px}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.prog-bar{height:3px;background:var(--border);border-radius:3px;margin-bottom:28px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:3px;transition:width .4s}
-.form-secs{display:flex;flex-direction:column;gap:20px}
-.fsec{background:#fff;border:1.5px solid var(--border);border-radius:16px;overflow:hidden}
-.fsec:hover{box-shadow:0 4px 16px rgba(15,14,12,.08)}
-.fsec-hdr{padding:16px 24px;background:var(--cream);border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
-.fsec-hdr-l{display:flex;align-items:center;gap:14px}
-.snum{width:28px;height:28px;background:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;transition:background .2s}
-.snum.done{background:var(--forest)}
-.stitle{font-weight:600;font-size:15px}
-.scompl{font-size:12px;color:var(--stone)}
-.stoggle{font-size:16px;color:var(--stone);transition:transform .2s}
-.stoggle.open{transform:rotate(180deg)}
-.fsec-body{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
-.fsec-body.hidden{display:none}
-.fg{display:flex;flex-direction:column;gap:6px}
-.fg.fw{grid-column:1/-1}
-label{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:4px}
-.req{color:var(--rust);font-size:14px}
-input,select,textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:#fff;transition:border-color .15s,box-shadow .15s;outline:none;-webkit-appearance:none}
-input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,134,11,.12)}
-input.err,select.err,textarea.err{border-color:var(--rust)}
-select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6560' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
-textarea{resize:vertical;min-height:90px;line-height:1.6}
-.gen-bar{display:none;position:sticky;bottom:0;background:var(--ink);border-top:3px solid var(--gold);padding:14px 32px;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;z-index:90;margin-top:28px}
-.gen-bar.visible{display:flex}
-.cb{display:flex;align-items:center;gap:10px;padding:8px 16px;background:rgba(255,255,255,.08);border-radius:8px;color:rgba(255,255,255,.7);font-size:13px}
-.cpct{font-size:20px;font-weight:700;color:var(--gold-l)}
-.mo{display:none;position:fixed;inset:0;background:rgba(15,14,12,.75);z-index:200;align-items:center;justify-content:center;padding:24px}
-.mo.open{display:flex}
-.mb{background:#fff;border-radius:20px;padding:48px 40px;max-width:460px;width:100%;text-align:center;position:relative;animation:popIn .3s cubic-bezier(.34,1.56,.64,1)}
-@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-.mi{font-size:56px;margin-bottom:16px;display:block}
-.mb h3{font-family:'Playfair Display',serif;font-size:24px;margin-bottom:10px}
-.mb p{color:var(--stone);font-size:14px;line-height:1.7;margin-bottom:24px}
-.ma{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.mclose{position:absolute;top:16px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--stone)}
-.mnote{margin-top:20px;padding:14px 16px;background:var(--parchment);border-radius:8px;font-size:12px;color:var(--stone);text-align:left;line-height:1.7}
-#toast{position:fixed;bottom:90px;right:24px;padding:13px 18px;border-radius:10px;font-size:14px;font-weight:500;z-index:999;transform:translateY(16px);opacity:0;transition:all .25s;max-width:340px}
-#toast.show{transform:translateY(0);opacity:1}
-#toast.ok{background:var(--forest);color:#fff;border-left:4px solid #5cb85c}
-#toast.er{background:var(--rust);color:#fff;border-left:4px solid #d44}
-.spin{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
-@keyframes rot{to{transform:rotate(360deg)}}
-footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;padding:28px;font-size:13px;line-height:1.9}
-footer strong{color:rgba(255,255,255,.75)}
-@media(max-width:640px){header{padding:0 16px}main{padding:28px 16px 100px}.hero{padding:48px 20px}.gen-bar{padding:12px 16px}.fsec-body{padding:18px;grid-template-columns:1fr}.mb{padding:32px 20px}}
-</style>
-</head>
-<body>
-<header>
-  <div class="logo" onclick="resetApp()">
-    <div class="logo-icon">&#9878;</div>
-    <span class="logo-text">Juri<span>Doc</span></span>
-  </div>
-  <span class="hdr-right">Documente Juridice &middot; Rom&acirc;nia</span>
-</header>
-<section class="hero">
-  <div class="hero-badge">Instrumente juridice profesionale</div>
-  <h1>Completeaz&#259; documentele juridice<br><em>rapid &#351;i corect</em></h1>
-  <p>Selecteaz&#259; tipul de document, completeaz&#259; datele variabile &#351;i descarc&#259; actul &icirc;n format Word editabil.</p>
-  <div class="steps">
-    <div class="step"><span class="step-num">1</span>Alege documentul</div>
-    <div class="step"><span class="step-num">2</span>Completeaz&#259; datele</div>
-    <div class="step"><span class="step-num">3</span>Descarc&#259; .docx</div>
-  </div>
-</section>
-<main>
-  <div id="selector">
-    <p class="sec-label">Selecteaz&#259; tipul de document</p>
-    <div class="tpl-grid" id="grid"></div>
-  </div>
-  <div id="form-area">
-    <div class="form-header">
-      <div class="form-title-block"><h2 id="form-title"></h2><p id="form-sub"></p></div>
-      <div class="form-acts">
-        <button class="btn btn-outline" onclick="clearForm()">&#128465; &#536;terge datele</button>
-        <button class="btn btn-outline" onclick="resetApp()">&larr; Schimb&#259; documentul</button>
-      </div>
-    </div>
-    <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
-    <div class="form-secs" id="form-secs"></div>
-  </div>
-</main>
-<div class="gen-bar" id="gen-bar">
-  <div class="cb">
-    <span>Completat:</span><span class="cpct" id="cpct">0%</span>
-    <span style="color:rgba(255,255,255,.4);font-size:12px" id="fst"></span>
-  </div>
-  <button class="btn btn-gold btn-lg" id="gen-btn" onclick="generateDoc()">&#128196; Genereaz&#259; Document Word</button>
-</div>
-<div class="mo" id="modal">
-  <div class="mb">
-    <button class="mclose" onclick="closeModal()">&#10005;</button>
-    <span class="mi">&#9989;</span>
-    <h3>Document generat!</h3>
-    <p>Documentul a fost completat &#351;i este gata de desc&#259;rcat &icirc;n format Word editabil (.docx).</p>
-    <div class="ma">
-      <a href="#" class="btn btn-gold btn-lg" id="dl-link" download>&#8595; Descarc&#259; .docx</a>
-      <button class="btn btn-outline" onclick="closeModal()">&#206;nchide</button>
-    </div>
-    <div class="mnote">&#9888; <strong>Not&#259;:</strong> Verifica&#355;i documentul &icirc;nainte de semnare. Se recomand&#259; consultarea unui avocat.</div>
-  </div>
-</div>
-<div id="toast"></div>
-<footer>
-  <strong>JuriDoc</strong> &mdash; Instrumente juridice pentru Rom&acirc;nia<br>
-  Modele orientative &middot; Cod Civil &middot; Cod Procedur&#259; Civil&#259; &middot; Legea 85/2014
-</footer>
+# -*- coding: utf-8 -*-
+import re, os
+
+src = open('/home/claude/juridoc/public/index.html', 'r', encoding='utf-8').read()
+css_html = re.split(r'<script>', src, maxsplit=1)[0]
+css_html = css_html.replace('JuriDoc \u2014 Documente Juridice Inteligente', 'JuriDoc \u2014 Documente Juridice')
+css_html = css_html.replace('</style>\n</head>', '</style>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>\n</head>')
+
+# The JS - written as actual UTF-8, no \u escapes
+js = """
 <script>
-const T=[
-  {id:'exec',name:'Cerere de Executare Silit\u0103',icon:'\u2696\ufe0f',desc:'art. 664\u2013666 Cod Procedur\u0103 Civil\u0103',sections:[
-    {title:'Date Creditor',fields:[
-      {k:'cred_nume',l:'Denumire / Nume complet',r:1},{k:'cred_forma',l:'Forma juridic\u0103',p:'SRL, SA, PF...'},
-      {k:'cred_cui',l:'CUI / CNP',r:1},{k:'cred_reg',l:'Nr. Reg. Comer\u021bului'},
-      {k:'cred_sediu',l:'Sediu / Domiciliu',r:1},{k:'cred_oras',l:'Ora\u0219, Jude\u021b',r:1},
-      {k:'cred_repr',l:'Reprezentant legal'},{k:'cred_calitate',l:'Calitate reprezentant'},
-      {k:'cred_tel',l:'Telefon',t:'tel'},{k:'cred_email',l:'Email',t:'email'},
-      {k:'cred_iban',l:'IBAN'},{k:'cred_banca',l:'Banc\u0103'}]},
-    {title:'Date Executor Judec\u0103toresc',fields:[
-      {k:'exec_nume',l:'Numele Executorului',r:1},{k:'exec_adresa',l:'Adresa BEJ',r:1},{k:'exec_loc',l:'Localitate',r:1}]},
-    {title:'Date Debitor',fields:[
-      {k:'deb_nume',l:'Denumire / Nume debitor',r:1},{k:'deb_cui',l:'CUI / CNP debitor',r:1},
-      {k:'deb_sediu',l:'Sediu / Domiciliu debitor',r:1},{k:'deb_oras',l:'Ora\u0219, Jude\u021b debitor'},
-      {k:'deb_munca',l:'Locul de munc\u0103'},{k:'deb_cont',l:'Cont bancar debitor'},
-      {k:'deb_banca',l:'Banca debitorului'},{k:'deb_bunuri',l:'Nr. auto / Bunuri'}]},
-    {title:'Titlul Executoriu',fields:[
-      {k:'titlu_nr',l:'Nr. / Data titlului',r:1},{k:'titlu_emitent',l:'Emitent',r:1},
-      {k:'titlu_tip',l:'Tip titlu',t:'sel',o:['Hot\u0103r\u00e2re judec\u0103toreasc\u0103 definitiv\u0103','Contract autentificat notarial','Contract de credit','Bilet la ordin / Cec protestat','Contract leasing','Alt titlu executoriu']},
-      {k:'titlu_investit',l:'Investit cu formul\u0103 executorie',t:'sel',o:['Da','Nu']},
-      {k:'titlu_data',l:'Data r\u0103m\u00e2nerii definitive',t:'date'}]},
-    {title:'Crean\u021ba de Recuperat',fields:[
-      {k:'cr_capital',l:'Capital principal (RON)',t:'number',r:1},
-      {k:'cr_dob',l:'Dob\u00e2nzi (RON)',t:'number'},{k:'cr_rata_dob',l:'Rata dob\u00e2nzii (%/an)',t:'number'},
-      {k:'cr_pen',l:'Penaliz\u0103ri (RON)',t:'number'},{k:'cr_rata_pen',l:'Rata penaliz\u0103ri (%/zi)',t:'number'},
-      {k:'cr_chelt',l:'Cheltuieli judecat\u0103 (RON)',t:'number'},{k:'cr_onor',l:'Onorariu avocat (RON)',t:'number'},
-      {k:'cr_alte',l:'Alte accesorii (RON)',t:'number'},
-      {k:'cr_total',l:'TOTAL DE RECUPERAT (RON)',t:'number',r:1},
-      {k:'avans',l:'Avans executare (RON)',t:'number'},{k:'avans_chit',l:'Nr. / Data chitan\u021b\u0103 avans'},
-      {k:'data_cerere',l:'Data cererii',t:'date',r:1}]}
-  ]},
-  {id:'inch',name:'Contract de \u00cenchiriere',icon:'\ud83c\udfe0',desc:'art. 1777\u20131850 Cod Civil',sections:[
-    {title:'Date Locator (Proprietar)',fields:[
-      {k:'loc_nume',l:'Nume / Denumire locator',r:1},{k:'loc_cnp',l:'CNP / CUI',r:1},
-      {k:'loc_dom',l:'Domiciliu / Sediu',r:1},{k:'loc_tel',l:'Telefon',t:'tel'},
-      {k:'loc_email',l:'Email',t:'email'},{k:'loc_iban',l:'IBAN'},{k:'loc_banca',l:'Banc\u0103'}]},
-    {title:'Date Locatar (Chirie\u0219)',fields:[
-      {k:'chi_nume',l:'Nume complet chirie\u0219',r:1},{k:'chi_cnp',l:'CNP',r:1},
-      {k:'chi_dom',l:'Domiciliu actual',r:1},{k:'chi_tel',l:'Telefon',t:'tel'},{k:'chi_email',l:'Email',t:'email'}]},
-    {title:'Imobilul',fields:[
-      {k:'imob_adresa',l:'Adresa imobilului',r:1},
-      {k:'imob_tip',l:'Tip imobil',t:'sel',o:['Apartament','Cas\u0103','Garsonier\u0103','Spa\u021biu comercial','Birou','Altul']},
-      {k:'imob_mp',l:'Suprafa\u021b\u0103 util\u0103 (mp)',t:'number',r:1},{k:'imob_camere',l:'Nr. camere',t:'number'},
-      {k:'imob_etaj',l:'Etaj / Nr. ap'},{k:'imob_cf',l:'Nr. cadastral / CF'}]},
-    {title:'Durata Contractului',fields:[
-      {k:'ct_nr',l:'Nr. contract',p:'ex: 001'},{k:'ct_data',l:'Data contractului',t:'date',r:1},
-      {k:'ct_start',l:'Data intr\u0103rii \u00een vigoare',t:'date',r:1},
-      {k:'ct_dur',l:'Durata',p:'ex: 12 luni',r:1},{k:'ct_end',l:'Data \u00encet\u0103rii',t:'date',r:1}]},
-    {title:'Chirie \u0219i Garan\u021bie',fields:[
-      {k:'chirie',l:'Chiria lunar\u0103',t:'number',r:1},
-      {k:'chirie_mon',l:'Moneda',t:'sel',o:['RON','EUR','USD']},
-      {k:'chirie_scad',l:'Scaden\u021ba pl\u0103\u021bii',p:'ex: data de 5 a lunii',r:1},
-      {k:'chirie_mod',l:'Modalitate plat\u0103',t:'sel',o:['Virament bancar','Numerar','Card']},
-      {k:'garantie',l:'Valoarea garan\u021biei (RON)',t:'number'},{k:'gar_chirii',l:'Garan\u021bie = nr. chirii',t:'number',p:'ex: 2'}]}
-  ]},
-  {id:'credala',name:'Cerere \u00centscriere Mas\u0103 Credal\u0103',icon:'\ud83d\udccb',desc:'art. 102\u2013106 Legea nr. 85/2014',sections:[
-    {title:'Date Creditor',fields:[
-      {k:'cr_nume',l:'Nume / Denumire creditor',r:1},{k:'cr_cnp',l:'CNP / CUI / CIF',r:1},
-      {k:'cr_reg',l:'Nr. Reg. Comer\u021bului'},{k:'cr_sediu',l:'Sediu / Domiciliu',r:1},
-      {k:'cr_judet',l:'Jude\u021b / Sector',r:1},{k:'cr_repr',l:'Reprezentant legal'},
-      {k:'cr_calitate',l:'Calitate reprezentant'},{k:'cr_tel',l:'Telefon',t:'tel'},
-      {k:'cr_email',l:'Email',t:'email'},{k:'cr_iban',l:'IBAN'},{k:'cr_banca',l:'Banc\u0103'}]},
-    {title:'Date Tribunal',fields:[
-      {k:'trib',l:'Tribunalul',r:1,p:'ex: BUCURE\u0218TI'},{k:'trib_sec',l:'Sec\u021bia / Completul'},
-      {k:'dosar_nr',l:'Dosar nr.',r:1},{k:'dep_data',l:'Data depunerii',t:'date',r:1}]},
-    {title:'Date Debitoare',fields:[
-      {k:'deb_den',l:'Denumire debitoare',r:1},{k:'deb_cui',l:'CUI debitoare',r:1},
-      {k:'deb_sediu',l:'Sediu debitoare',r:1},{k:'deb_dosar',l:'Nr. dosar insolven\u021b\u0103',r:1},
-      {k:'deb_trib',l:'Tribunal insolven\u021b\u0103',r:1},
-      {k:'deb_judec',l:'Judec\u0103tor sindic'},{k:'deb_admin',l:'Administrator judiciar'}]},
-    {title:'Crean\u021ba Solicitat\u0103',fields:[
-      {k:'mc_princ',l:'Principal / Capital (RON)',t:'number',r:1},
-      {k:'mc_dob',l:'Dob\u00e2nzi (RON)',t:'number'},{k:'mc_pen',l:'Penaliz\u0103ri (RON)',t:'number'},
-      {k:'mc_chelt',l:'Cheltuieli (RON)',t:'number'},{k:'mc_alte',l:'Alte accesorii (RON)',t:'number'},
-      {k:'mc_total',l:'TOTAL CREAN\u021a\u0102 (RON)',t:'number',r:1},
-      {k:'mc_per',l:'Perioada accesoriilor'},{k:'mc_temei',l:'Temeiul dob\u00e2nzii'},
-      {k:'mc_rata',l:'Rata dob\u00e2nzii (%/an)',t:'number'},
-      {k:'mc_desc',l:'Descrierea crean\u021bei',t:'ta',r:1}]},
-    {title:'Termen \u0219i Titlu',fields:[
-      {k:'termen',l:'Termenul limit\u0103 de depunere',t:'date',r:1},
-      {k:'titlu_tip',l:'Tipul titlului',t:'sel',o:['Contract','Hot\u0103r\u00e2re judec\u0103toreasc\u0103','Titlu executoriu','Factur\u0103 fiscal\u0103','Bilet la ordin/Cec','Altele']},
-      {k:'titlu_nr',l:'Nr. / Data titlului'}]}
-  ]}
+var T = [
+  {
+    id: 'exec',
+    name: 'Cerere de Executare Silită',
+    icon: '⚖️',
+    desc: 'art. 664–666 Cod de Procedură Civilă',
+    sections: [
+      { title: 'Date Creditor', fields: [
+        {k:'cred_nume', l:'Denumire / Nume complet', r:true},
+        {k:'cred_forma', l:'Forma juridică', p:'SRL, SA, PF...'},
+        {k:'cred_cui', l:'CUI / CNP', r:true},
+        {k:'cred_reg', l:'Nr. Registrul Comerțului'},
+        {k:'cred_sediu', l:'Sediu social / Domiciliu', r:true},
+        {k:'cred_oras', l:'Oraș, Județ', r:true},
+        {k:'cred_repr', l:'Reprezentant legal'},
+        {k:'cred_calitate', l:'Calitate reprezentant', p:'Administrator, Director...'},
+        {k:'cred_tel', l:'Telefon', t:'tel'},
+        {k:'cred_email', l:'Email', t:'email'},
+        {k:'cred_iban', l:'IBAN'},
+        {k:'cred_banca', l:'Bancă'}
+      ]},
+      { title: 'Date Executor Judecătoresc', fields: [
+        {k:'exec_nume', l:'Numele Executorului Judecătoresc', r:true},
+        {k:'exec_adresa', l:'Adresa BEJ', r:true},
+        {k:'exec_loc', l:'Localitate', r:true}
+      ]},
+      { title: 'Date Debitor', fields: [
+        {k:'deb_nume', l:'Denumire / Nume debitor', r:true},
+        {k:'deb_cui', l:'CUI / CNP debitor', r:true},
+        {k:'deb_sediu', l:'Sediu / Domiciliu debitor', r:true},
+        {k:'deb_oras', l:'Oraș, Județ debitor'},
+        {k:'deb_munca', l:'Locul de muncă (dacă se cunoaște)'},
+        {k:'deb_cont', l:'Cont bancar debitor'},
+        {k:'deb_banca', l:'Banca debitorului'},
+        {k:'deb_bunuri', l:'Nr. auto / Bunuri cunoscute'}
+      ]},
+      { title: 'Titlul Executoriu', fields: [
+        {k:'titlu_nr', l:'Nr. / Data titlului', r:true},
+        {k:'titlu_emitent', l:'Emitent (instanță / notar / bancă)', r:true},
+        {k:'titlu_tip', l:'Tip titlu', t:'sel', o:['Hotărâre judecătorească definitivă','Contract autentificat notarial','Contract de credit bancar','Bilet la ordin / Cec protestat','Contract leasing','Alt titlu executoriu']},
+        {k:'titlu_investit', l:'Investit cu formulă executorie', t:'sel', o:['Da','Nu']},
+        {k:'titlu_data', l:'Data rămânerii definitive', t:'date'}
+      ]},
+      { title: 'Creanța de Recuperat', fields: [
+        {k:'cr_capital', l:'Capital / Sumă principală (RON)', t:'number', r:true},
+        {k:'cr_dob', l:'Dobânzi (RON)', t:'number'},
+        {k:'cr_rata_dob', l:'Rata dobânzii (%/an)', t:'number'},
+        {k:'cr_pen', l:'Penalități de întârziere (RON)', t:'number'},
+        {k:'cr_rata_pen', l:'Rata penalități (%/zi)', t:'number'},
+        {k:'cr_chelt', l:'Cheltuieli de judecată (RON)', t:'number'},
+        {k:'cr_onor', l:'Onorariu avocat (RON)', t:'number'},
+        {k:'cr_alte', l:'Alte accesorii (RON)', t:'number'},
+        {k:'cr_total', l:'TOTAL DE RECUPERAT (RON)', t:'number', r:true},
+        {k:'avans', l:'Avans cheltuieli executare (RON)', t:'number'},
+        {k:'avans_chit', l:'Nr. / Data chitanță avans'},
+        {k:'data_cerere', l:'Data cererii', t:'date', r:true}
+      ]}
+    ]
+  },
+  {
+    id: 'inch',
+    name: 'Contract de Închiriere',
+    icon: '🏠',
+    desc: 'art. 1777–1850 Cod Civil',
+    sections: [
+      { title: 'Date Locator (Proprietar)', fields: [
+        {k:'loc_nume', l:'Nume / Denumire locator', r:true},
+        {k:'loc_cnp', l:'CNP / CUI', r:true},
+        {k:'loc_dom', l:'Domiciliu / Sediu', r:true},
+        {k:'loc_tel', l:'Telefon', t:'tel'},
+        {k:'loc_email', l:'Email', t:'email'},
+        {k:'loc_iban', l:'IBAN'},
+        {k:'loc_banca', l:'Bancă'}
+      ]},
+      { title: 'Date Locatar (Chiriaș)', fields: [
+        {k:'chi_nume', l:'Nume complet chiriaș', r:true},
+        {k:'chi_cnp', l:'CNP', r:true},
+        {k:'chi_dom', l:'Domiciliu actual', r:true},
+        {k:'chi_tel', l:'Telefon', t:'tel'},
+        {k:'chi_email', l:'Email', t:'email'}
+      ]},
+      { title: 'Imobilul', fields: [
+        {k:'imob_adresa', l:'Adresa imobilului', r:true},
+        {k:'imob_tip', l:'Tip imobil', t:'sel', o:['Apartament','Casă','Garsonieră','Spațiu comercial','Birou','Altul']},
+        {k:'imob_mp', l:'Suprafață utilă (mp)', t:'number', r:true},
+        {k:'imob_camere', l:'Număr camere', t:'number'},
+        {k:'imob_etaj', l:'Etaj / Nr. apartament'},
+        {k:'imob_cf', l:'Nr. cadastral / CF'}
+      ]},
+      { title: 'Durata Contractului', fields: [
+        {k:'ct_nr', l:'Numărul contractului', p:'ex: 001'},
+        {k:'ct_data', l:'Data contractului', t:'date', r:true},
+        {k:'ct_start', l:'Data intrării în vigoare', t:'date', r:true},
+        {k:'ct_dur', l:'Durata', p:'ex: 12 luni, 1 an', r:true},
+        {k:'ct_end', l:'Data încetării', t:'date', r:true}
+      ]},
+      { title: 'Chirie și Garanție', fields: [
+        {k:'chirie', l:'Chiria lunară', t:'number', r:true},
+        {k:'chirie_mon', l:'Moneda', t:'sel', o:['RON','EUR','USD']},
+        {k:'chirie_scad', l:'Scadența plății', p:'ex: data de 5 a lunii', r:true},
+        {k:'chirie_mod', l:'Modalitate plată', t:'sel', o:['Virament bancar','Numerar','Card']},
+        {k:'garantie', l:'Valoarea garanției (RON)', t:'number'},
+        {k:'gar_chirii', l:'Garanție = nr. chirii', t:'number', p:'ex: 2'}
+      ]}
+    ]
+  },
+  {
+    id: 'credala',
+    name: 'Cerere Înscriere Masă Credală',
+    icon: '📋',
+    desc: 'art. 102–106 Legea nr. 85/2014',
+    sections: [
+      { title: 'Date Creditor', fields: [
+        {k:'cr_nume', l:'Nume / Denumire creditor', r:true},
+        {k:'cr_cnp', l:'CNP / CUI / CIF', r:true},
+        {k:'cr_reg', l:'Nr. Reg. Comerțului'},
+        {k:'cr_sediu', l:'Sediu / Domiciliu', r:true},
+        {k:'cr_judet', l:'Județ / Sector', r:true},
+        {k:'cr_repr', l:'Reprezentant legal'},
+        {k:'cr_calitate', l:'Calitate reprezentant'},
+        {k:'cr_tel', l:'Telefon', t:'tel'},
+        {k:'cr_email', l:'Email', t:'email'},
+        {k:'cr_iban', l:'IBAN'},
+        {k:'cr_banca', l:'Bancă'}
+      ]},
+      { title: 'Date Tribunal', fields: [
+        {k:'trib', l:'Tribunalul', r:true, p:'ex: BUCUREȘTI'},
+        {k:'trib_sec', l:'Secția / Completul'},
+        {k:'dosar_nr', l:'Dosar nr.', r:true},
+        {k:'dep_data', l:'Data depunerii', t:'date', r:true}
+      ]},
+      { title: 'Date Debitoare (Societate în Insolvență)', fields: [
+        {k:'deb_den', l:'Denumire debitoare', r:true},
+        {k:'deb_cui', l:'CUI debitoare', r:true},
+        {k:'deb_sediu', l:'Sediu debitoare', r:true},
+        {k:'deb_dosar', l:'Nr. dosar insolvență', r:true},
+        {k:'deb_trib', l:'Tribunal insolvență', r:true},
+        {k:'deb_judec', l:'Judecător sindic'},
+        {k:'deb_admin', l:'Administrator judiciar'}
+      ]},
+      { title: 'Creanța Solicitată', fields: [
+        {k:'mc_princ', l:'Principal / Capital (RON)', t:'number', r:true},
+        {k:'mc_dob', l:'Dobânzi (RON)', t:'number'},
+        {k:'mc_pen', l:'Penalități (RON)', t:'number'},
+        {k:'mc_chelt', l:'Cheltuieli judecată/executare (RON)', t:'number'},
+        {k:'mc_alte', l:'Alte accesorii (RON)', t:'number'},
+        {k:'mc_total', l:'TOTAL CREANȚĂ (RON)', t:'number', r:true},
+        {k:'mc_per', l:'Perioada accesoriilor'},
+        {k:'mc_temei', l:'Temeiul dobânzii'},
+        {k:'mc_rata', l:'Rata dobânzii (%/an)', t:'number'},
+        {k:'mc_desc', l:'Descrierea creanței', t:'ta', r:true}
+      ]},
+      { title: 'Termen și Titlu', fields: [
+        {k:'termen', l:'Termenul limită de depunere', t:'date', r:true},
+        {k:'titlu_tip', l:'Tipul titlului', t:'sel', o:['Contract','Hotărâre judecătorească','Titlu executoriu','Factură fiscală','Bilet la ordin/Cec','Altele']},
+        {k:'titlu_nr', l:'Nr. / Data titlului'}
+      ]}
+    ]
+  }
 ];
 
-let cur=null;
+var cur = null;
 
-(function(){
-  document.getElementById('grid').innerHTML=T.map(function(t){
-    var cnt=t.sections.reduce(function(s,sec){return s+sec.fields.length;},0);
-    return '<div class="tpl-card" id="c-'+t.id+'" onclick="sel(\''+t.id+'\')"><span class="card-icon">'+t.icon+'</span><div class="card-name">'+t.name+'</div><div class="card-basis">'+t.desc+'</div><div class="card-cnt">&#128221; '+cnt+' c\u00e2mpuri</div></div>';
+document.addEventListener('DOMContentLoaded', function() {
+  var grid = document.getElementById('grid');
+  if (!grid) return;
+  grid.innerHTML = T.map(function(t) {
+    var cnt = t.sections.reduce(function(s, sec) { return s + sec.fields.length; }, 0);
+    return '<div class="tpl-card" id="c-' + t.id + '" data-id="' + t.id + '" onclick="sel(this.getAttribute(\'data-id\'))">'
+      + '<span class="card-icon">' + t.icon + '</span>'
+      + '<div class="card-name">' + t.name + '</div>'
+      + '<div class="card-basis">' + t.desc + '</div>'
+      + '<div class="card-cnt">📝 ' + cnt + ' câmpuri de completat</div>'
+      + '</div>';
   }).join('');
-})();
+});
 
-function sel(id){
-  cur=T.find(function(t){return t.id===id;});
-  document.querySelectorAll('.tpl-card').forEach(function(c){c.classList.remove('active');});
-  document.getElementById('c-'+id).classList.add('active');
-  document.getElementById('form-title').textContent=cur.name;
-  document.getElementById('form-sub').textContent=cur.desc;
+function sel(id) {
+  cur = T.find(function(t) { return t.id === id; });
+  if (!cur) return;
+  document.querySelectorAll('.tpl-card').forEach(function(c) { c.classList.remove('active'); });
+  var card = document.getElementById('c-' + id);
+  if (card) card.classList.add('active');
+  document.getElementById('form-title').textContent = cur.name;
+  document.getElementById('form-sub').textContent = cur.desc;
   renderForm();
   document.getElementById('form-area').classList.add('visible');
   document.getElementById('gen-bar').classList.add('visible');
-  setTimeout(function(){document.getElementById('form-area').scrollIntoView({behavior:'smooth',block:'start'});},80);
+  setTimeout(function() {
+    document.getElementById('form-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
   updProg();
 }
 
-function renderForm(){
-  document.getElementById('form-secs').innerHTML=cur.sections.map(function(sec,i){
-    var fields=sec.fields.map(function(f){
-      var fw=f.t==='ta'?' fw':'',rq=f.r?'<span class="req">*</span>':'';
+function renderForm() {
+  var c = document.getElementById('form-secs');
+  c.innerHTML = cur.sections.map(function(sec, i) {
+    var fields = sec.fields.map(function(f) {
+      var fw = f.t === 'ta' ? ' fw' : '';
+      var rq = f.r ? '<span class="req">*</span>' : '';
       var inp;
-      if(f.t==='sel'){
-        inp='<select id="f-'+f.k+'"'+(f.r?' required':'')+'><option value="">\u2014 Selecteaz\u0103 \u2014</option>'+
-          (f.o||[]).map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>';
-      } else if(f.t==='ta'){
-        inp='<textarea id="f-'+f.k+'" placeholder="'+(f.p||'')+'"'+(f.r?' required':'')+' rows="4"></textarea>';
+      if (f.t === 'sel') {
+        inp = '<select id="f-' + f.k + '"' + (f.r ? ' required' : '') + '>'
+          + '<option value="">— Selectează —</option>'
+          + (f.o || []).map(function(o) { return '<option>' + o + '</option>'; }).join('')
+          + '</select>';
+      } else if (f.t === 'ta') {
+        inp = '<textarea id="f-' + f.k + '" placeholder="' + (f.p || '') + '"' + (f.r ? ' required' : '') + ' rows="4"></textarea>';
       } else {
-        inp='<input type="'+(f.t||'text')+'" id="f-'+f.k+'" placeholder="'+(f.p||'')+'"'+(f.r?' required':'')+' autocomplete="off">';
+        inp = '<input type="' + (f.t || 'text') + '" id="f-' + f.k + '" placeholder="' + (f.p || '') + '"' + (f.r ? ' required' : '') + ' autocomplete="off">';
       }
-      return '<div class="fg'+fw+'"><label for="f-'+f.k+'">'+f.l+rq+'</label>'+inp+'</div>';
+      return '<div class="fg' + fw + '"><label for="f-' + f.k + '">' + f.l + rq + '</label>' + inp + '</div>';
     }).join('');
-    return '<div class="fsec"><div class="fsec-hdr" onclick="tog('+i+')">'
-      +'<div class="fsec-hdr-l"><div class="snum" id="sn'+i+'">'+(i+1)+'</div><span class="stitle">'+sec.title+'</span></div>'
-      +'<div style="display:flex;align-items:center;gap:10px"><span class="scompl" id="sc'+i+'"></span>'
-      +'<span class="stoggle open" id="st'+i+'">\u25be</span></div></div>'
-      +'<div class="fsec-body" id="sb'+i+'">'+fields+'</div></div>';
+    return '<div class="fsec">'
+      + '<div class="fsec-hdr" onclick="tog(' + i + ')">'
+      + '<div class="fsec-hdr-l"><div class="snum" id="sn' + i + '">' + (i + 1) + '</div>'
+      + '<span class="stitle">' + sec.title + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+      + '<span class="scompl" id="sc' + i + '"></span>'
+      + '<span class="stoggle open" id="st' + i + '">▾</span>'
+      + '</div></div>'
+      + '<div class="fsec-body" id="sb' + i + '">' + fields + '</div>'
+      + '</div>';
   }).join('');
-  document.querySelectorAll('#form-secs input,#form-secs select,#form-secs textarea')
-    .forEach(function(el){el.addEventListener('input',function(){updProg();autoTot();});});
-}
-
-function tog(i){
-  document.getElementById('sb'+i).classList.toggle('hidden');
-  document.getElementById('st'+i).classList.toggle('open');
-}
-
-function updProg(){
-  if(!cur)return;
-  var tot=0,fil=0;
-  cur.sections.forEach(function(sec,i){
-    var st=0,sf=0;
-    sec.fields.forEach(function(f){tot++;st++;var el=document.getElementById('f-'+f.k);if(el&&el.value.trim()){fil++;sf++;}});
-    var sc=document.getElementById('sc'+i),sn=document.getElementById('sn'+i);
-    if(sc)sc.textContent=sf+'/'+st;
-    if(sn)sn.classList.toggle('done',sf===st&&st>0);
-  });
-  var p=tot?Math.round(fil/tot*100):0;
-  document.getElementById('prog').style.width=p+'%';
-  document.getElementById('cpct').textContent=p+'%';
-  document.getElementById('fst').textContent=fil+' / '+tot+' c\u00e2mpuri';
-}
-
-function autoTot(){
-  [{keys:['cr_capital','cr_dob','cr_pen','cr_chelt','cr_onor','cr_alte'],tk:'cr_total'},
-   {keys:['mc_princ','mc_dob','mc_pen','mc_chelt','mc_alte'],tk:'mc_total'}
-  ].forEach(function(g){
-    var s=0,any=false;
-    g.keys.forEach(function(k){var el=document.getElementById('f-'+k);if(el&&el.value.trim()){s+=parseFloat(el.value)||0;any=true;}});
-    if(any){var tel=document.getElementById('f-'+g.tk);if(tel&&!tel.value)tel.value=s.toFixed(2);}
+  c.querySelectorAll('input, select, textarea').forEach(function(el) {
+    el.addEventListener('input', function() { updProg(); autoTot(); });
   });
 }
 
-async function generateDoc(){
-  if(!cur)return;
-  if(typeof JSZip==='undefined'){
-    toast('JSZip nu s-a \u00eenc\u0103rcat. Verifica\u021bi conexiunea la internet.','er');return;
+function tog(i) {
+  document.getElementById('sb' + i).classList.toggle('hidden');
+  document.getElementById('st' + i).classList.toggle('open');
+}
+
+function updProg() {
+  if (!cur) return;
+  var tot = 0, fil = 0;
+  cur.sections.forEach(function(sec, i) {
+    var st = 0, sf = 0;
+    sec.fields.forEach(function(f) {
+      tot++; st++;
+      var el = document.getElementById('f-' + f.k);
+      if (el && el.value.trim()) { fil++; sf++; }
+    });
+    var sc = document.getElementById('sc' + i);
+    var sn = document.getElementById('sn' + i);
+    if (sc) sc.textContent = sf + '/' + st;
+    if (sn) sn.classList.toggle('done', sf === st && st > 0);
+  });
+  var p = tot ? Math.round(fil / tot * 100) : 0;
+  document.getElementById('prog').style.width = p + '%';
+  document.getElementById('cpct').textContent = p + '%';
+  document.getElementById('fst').textContent = fil + ' / ' + tot + ' câmpuri';
+}
+
+function autoTot() {
+  [
+    { keys: ['cr_capital','cr_dob','cr_pen','cr_chelt','cr_onor','cr_alte'], tk: 'cr_total' },
+    { keys: ['mc_princ','mc_dob','mc_pen','mc_chelt','mc_alte'], tk: 'mc_total' }
+  ].forEach(function(g) {
+    var s = 0, any = false;
+    g.keys.forEach(function(k) {
+      var el = document.getElementById('f-' + k);
+      if (el && el.value.trim()) { s += parseFloat(el.value) || 0; any = true; }
+    });
+    if (any) {
+      var tel = document.getElementById('f-' + g.tk);
+      if (tel && !tel.value) tel.value = s.toFixed(2);
+    }
+  });
+}
+
+async function generateDoc() {
+  if (!cur) return;
+  if (typeof JSZip === 'undefined') {
+    toast('JSZip nu s-a încărcat. Verificați conexiunea la internet.', 'er');
+    return;
   }
-  var miss=[];
-  cur.sections.forEach(function(sec,i){
-    sec.fields.forEach(function(f){
-      if(f.r){
-        var el=document.getElementById('f-'+f.k);
-        if(!el||!el.value.trim()){
-          miss.push(f.l);if(el)el.classList.add('err');
-          var sb=document.getElementById('sb'+i),st=document.getElementById('st'+i);
-          if(sb&&sb.classList.contains('hidden')){sb.classList.remove('hidden');if(st)st.classList.add('open');}
-        } else if(el)el.classList.remove('err');
+  var miss = [];
+  cur.sections.forEach(function(sec, i) {
+    sec.fields.forEach(function(f) {
+      if (f.r) {
+        var el = document.getElementById('f-' + f.k);
+        if (!el || !el.value.trim()) {
+          miss.push(f.l);
+          if (el) el.classList.add('err');
+          var sb = document.getElementById('sb' + i);
+          var st = document.getElementById('st' + i);
+          if (sb && sb.classList.contains('hidden')) {
+            sb.classList.remove('hidden');
+            if (st) st.classList.add('open');
+          }
+        } else {
+          if (el) el.classList.remove('err');
+        }
       }
     });
   });
-  if(miss.length){toast('C\u00e2mpuri obligatorii: '+miss.slice(0,2).join(', ')+(miss.length>2?' ...':''),'er');return;}
-  var vals={};
-  cur.sections.forEach(function(sec){sec.fields.forEach(function(f){var el=document.getElementById('f-'+f.k);vals[f.k]=el?el.value.trim():'';});});
-  var btn=document.getElementById('gen-btn'),orig=btn.innerHTML;
-  btn.innerHTML='<div class="spin"></div> Se genereaz\u0103...';btn.disabled=true;
-  try{
-    var blob=await buildDocx(cur,vals);
-    var url=URL.createObjectURL(blob);
-    var lnk=document.getElementById('dl-link');
-    lnk.href=url;lnk.download=cur.name.replace(/\s+/g,'_')+'_completat.docx';
-    document.getElementById('modal').classList.add('open');
-  }catch(e){toast('Eroare: '+e.message,'er');console.error(e);}
-  finally{btn.innerHTML=orig;btn.disabled=false;}
-}
-
-async function buildDocx(tpl,vals){
-  function xe(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  var G='B8860B',INK='0F0E0C',CR='F3EDE2',LT='CCCCCC';
-  function rn(t,b,it,sz,col,fn){
-    fn=fn||'Calibri';sz=sz||20;col=col||INK;
-    return '<w:r><w:rPr>'+(b?'<w:b/>':'')+(it?'<w:i/>':'')
-      +'<w:sz w:val="'+sz+'"/><w:szCs w:val="'+sz+'"/>'
-      +'<w:color w:val="'+col+'"/>'
-      +'<w:rFonts w:ascii="'+fn+'" w:hAnsi="'+fn+'"/>'
-      +'</w:rPr><w:t xml:space="preserve">'+xe(t)+'</w:t></w:r>';
+  if (miss.length) {
+    toast('Câmpuri obligatorii: ' + miss.slice(0, 2).join(', ') + (miss.length > 2 ? ' ...' : ''), 'er');
+    return;
   }
-  function pa(runs,al,sb,sa){
-    al=al||'left';sb=sb||0;sa=sa===undefined?80:sa;
-    return '<w:p><w:pPr><w:jc w:val="'+al+'"/><w:spacing w:before="'+sb+'" w:after="'+sa+'"/></w:pPr>'+runs+'</w:p>';
-  }
-  function sp(n){return '<w:p><w:pPr><w:spacing w:before="0" w:after="'+(n||80)+'"/></w:pPr></w:p>';}
-  function hl(){return '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="'+G+'"/></w:pBdr><w:spacing w:before="40" w:after="120"/></w:pPr></w:p>';}
-  function fr(lbl,val){
-    var hv=val&&val.trim(),dv=hv?val:'___________________________',vc=hv?INK:LT;
-    return '<w:tr>'
-      +'<w:tc><w:tcPr><w:tcW w:w="3200" w:type="dxa"/>'
-      +'<w:shd w:val="clear" w:color="auto" w:fill="'+CR+'"/>'
-      +'<w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>'
-      +'</w:tcPr><w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>'+rn(lbl,true,false,18,'444440')+'</w:p></w:tc>'
-      +'<w:tc><w:tcPr><w:tcW w:w="5000" w:type="dxa"/>'
-      +'<w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>'
-      +'</w:tcPr><w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>'+rn(dv,!!hv,false,18,vc)+'</w:p></w:tc></w:tr>';
-  }
-  function tb(rows){
-    return '<w:tbl><w:tblPr>'
-      +'<w:tblW w:w="8200" w:type="dxa"/>'
-      +'<w:tblBorders>'
-      +'<w:top w:val="single" w:sz="4" w:space="0" w:color="'+G+'"/>'
-      +'<w:left w:val="single" w:sz="4" w:space="0" w:color="'+G+'"/>'
-      +'<w:bottom w:val="single" w:sz="4" w:space="0" w:color="'+G+'"/>'
-      +'<w:right w:val="single" w:sz="4" w:space="0" w:color="'+G+'"/>'
-      +'<w:insideH w:val="single" w:sz="2" w:space="0" w:color="E0D5C0"/>'
-      +'<w:insideV w:val="single" w:sz="2" w:space="0" w:color="E0D5C0"/>'
-      +'</w:tblBorders></w:tblPr>'+rows+'</w:tbl>';
-  }
-
-  var body='';
-  body+=pa(rn(tpl.name.toUpperCase(),true,false,36,INK,'Georgia'),'center',0,60);
-  body+=pa(rn(tpl.desc,false,true,18,'888888'),'center',0,200);
-  body+=hl();
-  tpl.sections.forEach(function(sec,i){
-    body+=sp(120);
-    body+=pa(rn((i+1)+'.  '+sec.title.toUpperCase(),true,false,22,G,'Georgia'),'left',160,100);
-    body+=tb(sec.fields.map(function(f){return fr(f.l,vals[f.k]||'');}).join(''));
+  var vals = {};
+  cur.sections.forEach(function(sec) {
+    sec.fields.forEach(function(f) {
+      var el = document.getElementById('f-' + f.k);
+      vals[f.k] = el ? el.value.trim() : '';
+    });
   });
-  body+=sp(300);body+=hl();
-  body+=pa(rn('SEMN\u0102TUR\u0102 \u0218I DAT\u0102',true,false,18,G),'left',120,80);
-  body+=pa(rn('Data: ___________________        Semn\u0103tura: _______________________________',false,false,18,INK),'left',60,200);
-  body+=pa(rn('NOT\u0102: Document generat de JuriDoc \u2014 model orientativ. Verifica\u021bi cu un avocat \u00eenainte de depunere.',false,true,16,LT),'center');
-
-  var docXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    +'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
-    +' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-    +'<w:body>'+body
-    +'<w:sectPr><w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>'
-    +'</w:body></w:document>';
-  var rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-    +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
-    +'</Relationships>';
-  var styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    +'<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-    +'<w:docDefaults><w:rPrDefault><w:rPr>'
-    +'<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="20"/><w:szCs w:val="20"/>'
-    +'<w:lang w:val="ro-RO"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>';
-  var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-    +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-    +'<Default Extension="xml" ContentType="application/xml"/>'
-    +'<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
-    +'<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
-    +'</Types>';
-  var rootRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-    +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
-    +'</Relationships>';
-
-  var zip=new JSZip();
-  zip.file('[Content_Types].xml',ct);
-  zip.file('_rels/.rels',rootRels);
-  zip.file('word/document.xml',docXml);
-  zip.file('word/styles.xml',styles);
-  zip.file('word/_rels/document.xml.rels',rels);
-  return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',compression:'DEFLATE',compressionOptions:{level:6}});
+  var btn = document.getElementById('gen-btn');
+  var orig = btn.innerHTML;
+  btn.innerHTML = '<div class="spin"></div> Se generează...';
+  btn.disabled = true;
+  try {
+    var blob = await buildDocx(cur, vals);
+    var url = URL.createObjectURL(blob);
+    var lnk = document.getElementById('dl-link');
+    lnk.href = url;
+    lnk.download = cur.name.replace(/\\s+/g, '_') + '_completat.docx';
+    document.getElementById('modal').classList.add('open');
+  } catch(e) {
+    toast('Eroare: ' + e.message, 'er');
+    console.error(e);
+  } finally {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+  }
 }
 
-function clearForm(){
-  if(!confirm('Sterge\u021bi toate datele?'))return;
-  document.querySelectorAll('#form-secs input,#form-secs select,#form-secs textarea').forEach(function(el){el.value='';el.classList.remove('err');});
-  updProg();toast('Datele au fost \u015fterse','ok');
+async function buildDocx(tpl, vals) {
+  function xe(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var G = 'B8860B', INK = '0F0E0C', CR = 'F3EDE2', LT = 'CCCCCC';
+  function rn(t, b, it, sz, col, fn) {
+    fn = fn || 'Calibri'; sz = sz || 20; col = col || INK;
+    return '<w:r><w:rPr>' + (b ? '<w:b/>' : '') + (it ? '<w:i/>' : '')
+      + '<w:sz w:val="' + sz + '"/><w:szCs w:val="' + sz + '"/>'
+      + '<w:color w:val="' + col + '"/>'
+      + '<w:rFonts w:ascii="' + fn + '" w:hAnsi="' + fn + '"/>'
+      + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>';
+  }
+  function pa(runs, al, sb, sa) {
+    al = al || 'left'; sb = sb || 0; sa = (sa === undefined) ? 80 : sa;
+    return '<w:p><w:pPr><w:jc w:val="' + al + '"/><w:spacing w:before="' + sb + '" w:after="' + sa + '"/></w:pPr>' + runs + '</w:p>';
+  }
+  function sp(n) { return '<w:p><w:pPr><w:spacing w:before="0" w:after="' + (n || 80) + '"/></w:pPr></w:p>'; }
+  function hl() { return '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="' + G + '"/></w:pBdr><w:spacing w:before="40" w:after="120"/></w:pPr></w:p>'; }
+  function fr(lbl, val) {
+    var hv = val && val.trim(), dv = hv ? val : '___________________________', vc = hv ? INK : LT;
+    return '<w:tr>'
+      + '<w:tc><w:tcPr><w:tcW w:w="3200" w:type="dxa"/>'
+      + '<w:shd w:val="clear" w:color="auto" w:fill="' + CR + '"/>'
+      + '<w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>'
+      + '</w:tcPr><w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>' + rn(lbl, true, false, 18, '444440') + '</w:p></w:tc>'
+      + '<w:tc><w:tcPr><w:tcW w:w="5000" w:type="dxa"/>'
+      + '<w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar>'
+      + '</w:tcPr><w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>' + rn(dv, !!hv, false, 18, vc) + '</w:p></w:tc>'
+      + '</w:tr>';
+  }
+  function tb(rows) {
+    return '<w:tbl><w:tblPr>'
+      + '<w:tblW w:w="8200" w:type="dxa"/>'
+      + '<w:tblBorders>'
+      + '<w:top w:val="single" w:sz="4" w:space="0" w:color="' + G + '"/>'
+      + '<w:left w:val="single" w:sz="4" w:space="0" w:color="' + G + '"/>'
+      + '<w:bottom w:val="single" w:sz="4" w:space="0" w:color="' + G + '"/>'
+      + '<w:right w:val="single" w:sz="4" w:space="0" w:color="' + G + '"/>'
+      + '<w:insideH w:val="single" w:sz="2" w:space="0" w:color="E0D5C0"/>'
+      + '<w:insideV w:val="single" w:sz="2" w:space="0" w:color="E0D5C0"/>'
+      + '</w:tblBorders></w:tblPr>' + rows + '</w:tbl>';
+  }
+
+  var body = '';
+  body += pa(rn(tpl.name.toUpperCase(), true, false, 36, INK, 'Georgia'), 'center', 0, 60);
+  body += pa(rn(tpl.desc, false, true, 18, '888888'), 'center', 0, 200);
+  body += hl();
+  tpl.sections.forEach(function(sec, i) {
+    body += sp(120);
+    body += pa(rn((i + 1) + '.  ' + sec.title.toUpperCase(), true, false, 22, G, 'Georgia'), 'left', 160, 100);
+    body += tb(sec.fields.map(function(f) { return fr(f.l, vals[f.k] || ''); }).join(''));
+  });
+  body += sp(300); body += hl();
+  body += pa(rn('SEMNĂTURĂ ȘI DATĂ', true, false, 18, G), 'left', 120, 80);
+  body += pa(rn('Data: ___________________        Semnătura: _______________________________', false, false, 18, INK), 'left', 60, 200);
+  body += pa(rn('NOTĂ: Document generat de JuriDoc — model orientativ. Verificați cu un avocat înainte de depunere.', false, true, 16, LT), 'center');
+
+  var docXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+    + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+    + '<w:body>' + body
+    + '<w:sectPr><w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1080" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>'
+    + '</w:body></w:document>';
+  var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+    + '</Relationships>';
+  var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+    + '<w:docDefaults><w:rPrDefault><w:rPr>'
+    + '<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="20"/><w:szCs w:val="20"/>'
+    + '<w:lang w:val="ro-RO"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>';
+  var ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+    + '<Default Extension="xml" ContentType="application/xml"/>'
+    + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+    + '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
+    + '</Types>';
+  var rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+    + '</Relationships>';
+
+  var zip = new JSZip();
+  zip.file('[Content_Types].xml', ct);
+  zip.file('_rels/.rels', rootRels);
+  zip.file('word/document.xml', docXml);
+  zip.file('word/styles.xml', styles);
+  zip.file('word/_rels/document.xml.rels', rels);
+  return zip.generateAsync({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 }
+  });
 }
-function resetApp(){
-  cur=null;
-  document.querySelectorAll('.tpl-card').forEach(function(c){c.classList.remove('active');});
+
+function clearForm() {
+  if (!confirm('Ștergeți toate datele completate?')) return;
+  document.querySelectorAll('#form-secs input, #form-secs select, #form-secs textarea').forEach(function(el) {
+    el.value = ''; el.classList.remove('err');
+  });
+  updProg();
+  toast('Datele au fost șterse', 'ok');
+}
+function resetApp() {
+  cur = null;
+  document.querySelectorAll('.tpl-card').forEach(function(c) { c.classList.remove('active'); });
   document.getElementById('form-area').classList.remove('visible');
   document.getElementById('gen-bar').classList.remove('visible');
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-function closeModal(){document.getElementById('modal').classList.remove('open');}
-function toast(msg,type){
-  var t=document.getElementById('toast');
-  t.textContent=(type==='ok'?'\u2713 ':'\u2715 ')+msg;t.className='show '+type;
-  clearTimeout(t._t);t._t=setTimeout(function(){t.className='';},4500);
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = (type === 'ok' ? '✓ ' : '✕ ') + msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(function() { t.className = ''; }, 4500);
 }
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===document.getElementById('modal'))closeModal();});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 </script>
 </body>
 </html>
+"""
+
+# Combine CSS/HTML with new JS
+# Remove old closing tags from css_html part
+css_html_clean = css_html.rstrip()
+# Replace the old JS init call reference in HTML buttons
+final = css_html_clean + js
+
+with open('/mnt/user-data/outputs/index.html', 'w', encoding='utf-8') as f:
+    f.write(final)
+
+size = os.path.getsize('/mnt/user-data/outputs/index.html')
+print(f"Written: {size} bytes ({size//1024} KB)")
+
+# Validate
+with open('/mnt/user-data/outputs/index.html', 'r', encoding='utf-8') as f:
+    c = f.read()
+
+checks = ['<!DOCTYPE html>', '</html>', 'JSZip', 'buildDocx', 'DOMContentLoaded', 'sel(', 'renderForm', 'Executare', 'Închiriere', 'Credală']
+for ch in checks:
+    assert ch in c, f"MISSING: {ch}"
+    print(f"  OK: {ch}")
